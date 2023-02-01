@@ -12,6 +12,16 @@
         insertafter: '^(\s*).*kube-subnet-mgr(.*)$'
         line: '        - --iface={{ kubernetes_iface }}'
 
+    - name: Replace cidr Network
+      replace: 
+        path: /root/kube-flannel.yml
+        regexp: '^(\s*).*"Network": "10.244.0.0\/16",(.*)$'
+        replace: '      "Network": "{{kubernetes_cidr_subnet}}",'
+        after: "net-conf.json:"
+        before: "}"
+        backup: yes
+      when: (kubernetes_cidr_subnet is defined) and (kubernetes_cidr_subnet|length > 0)
+
     - name: Install flannel
       ansible.builtin.command: kubectl apply -f /root/kube-flannel.yml
   when: kubernetes_cni == 'flannel'
